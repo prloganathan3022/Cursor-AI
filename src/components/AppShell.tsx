@@ -1,20 +1,20 @@
-import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { ThemeToggle } from './ThemeToggle'
-import type { ReactNode } from 'react'
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { ThemeToggle } from "./ThemeToggle";
+import type { ReactNode } from "react";
 
 type AppShellProps = {
-  children: ReactNode
-  title?: string
-  showNav?: boolean
-}
+  children: ReactNode;
+  title?: string;
+  showNav?: boolean;
+};
 
 export function AppShell({
   children,
-  title = 'Task Management',
+  title = "Task Management",
   showNav = true,
 }: AppShellProps) {
-  const { isAuthenticated, user, logout } = useAuth()
+  const { isAuthenticated, user, logout } = useAuth();
 
   return (
     <div className="flex min-h-dvh flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -22,7 +22,7 @@ export function AppShell({
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link
-              to={isAuthenticated ? '/dashboard' : '/login'}
+              to={isAuthenticated ? "/dashboard" : "/login"}
               className="truncate text-lg font-semibold tracking-tight text-violet-700 dark:text-violet-400 sm:text-xl"
             >
               {title}
@@ -74,5 +74,5 @@ export function AppShell({
         Built with React, TypeScript & Tailwind CSS
       </footer>
     </div>
-  )
+  );
 }

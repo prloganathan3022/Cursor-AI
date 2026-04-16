@@ -6,52 +6,55 @@ import {
   useState,
   useSyncExternalStore,
   type ReactNode,
-} from 'react'
-import { AppShell } from '../components/AppShell'
-import { isApiMode } from '../config/api'
-import { redSummary, aggregateRoutes } from '../monitoring/aggregateApiMetrics'
+} from "react";
+import { AppShell } from "../components/AppShell";
+import { isApiMode } from "../config/api";
+import { redSummary, aggregateRoutes } from "../monitoring/aggregateApiMetrics";
 import {
   clearClientTelemetry,
   getClientApiMetrics,
   subscribeClientTelemetry,
-} from '../monitoring/clientTelemetry'
+} from "../monitoring/clientTelemetry";
 import {
   buildDemoLogs,
   deriveAlerts,
   initialInfrastructure,
   tickInfrastructure,
-} from '../monitoring/demoInfrastructure'
-import { SUGGESTED_TOOLS } from '../monitoring/suggestedTools'
-import type { InfrastructureHealth, MonitoringAlert } from '../monitoring/types'
+} from "../monitoring/demoInfrastructure";
+import { SUGGESTED_TOOLS } from "../monitoring/suggestedTools";
+import type {
+  InfrastructureHealth,
+  MonitoringAlert,
+} from "../monitoring/types";
 
-const WINDOW_MS = 5 * 60 * 1000
+const WINDOW_MS = 5 * 60 * 1000;
 
 function useClientMetrics() {
   return useSyncExternalStore(
     subscribeClientTelemetry,
     getClientApiMetrics,
     getClientApiMetrics,
-  )
+  );
 }
 
 function formatUptime(seconds: number): string {
-  const d = Math.floor(seconds / 86400)
-  const h = Math.floor((seconds % 86400) / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  if (d > 0) return `${d}d ${h}h`
-  if (h > 0) return `${h}h ${m}m`
-  return `${m}m`
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
 }
 
 function Sparkline({
   values,
   className,
 }: {
-  values: number[]
-  className?: string
+  values: number[];
+  className?: string;
 }) {
-  const w = 120
-  const h = 36
+  const w = 120;
+  const h = 36;
   if (values.length < 2) {
     return (
       <svg
@@ -70,16 +73,16 @@ function Sparkline({
           strokeWidth={1}
         />
       </svg>
-    )
+    );
   }
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const span = max - min || 1
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
   const pts = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * w
-    const y = h - ((v - min) / span) * (h - 4) - 2
-    return `${x.toFixed(1)},${y.toFixed(1)}`
-  })
+    const x = (i / (values.length - 1)) * w;
+    const y = h - ((v - min) / span) * (h - 4) - 2;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
   return (
     <svg
       className={className}
@@ -92,34 +95,36 @@ function Sparkline({
         fill="none"
         className="stroke-violet-500 dark:stroke-violet-400"
         strokeWidth={1.5}
-        points={pts.join(' ')}
+        points={pts.join(" ")}
       />
     </svg>
-  )
+  );
 }
 
-function StatusPill({ status }: { status: InfrastructureHealth['status'] }) {
+function StatusPill({ status }: { status: InfrastructureHealth["status"] }) {
   const map = {
-    healthy: 'bg-emerald-500/15 text-emerald-800 ring-emerald-500/30 dark:text-emerald-300',
-    degraded: 'bg-amber-500/15 text-amber-900 ring-amber-500/35 dark:text-amber-200',
-    critical: 'bg-red-500/15 text-red-800 ring-red-500/35 dark:text-red-300',
-  } as const
+    healthy:
+      "bg-emerald-500/15 text-emerald-800 ring-emerald-500/30 dark:text-emerald-300",
+    degraded:
+      "bg-amber-500/15 text-amber-900 ring-amber-500/35 dark:text-amber-200",
+    critical: "bg-red-500/15 text-red-800 ring-red-500/35 dark:text-red-300",
+  } as const;
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${map[status]}`}
     >
       {status}
     </span>
-  )
+  );
 }
 
 function AlertRow({ alert }: { alert: MonitoringAlert }) {
   const sev =
-    alert.severity === 'critical'
-      ? 'border-red-200 bg-red-50/80 dark:border-red-900/50 dark:bg-red-950/40'
-      : alert.severity === 'warning'
-        ? 'border-amber-200 bg-amber-50/80 dark:border-amber-900/40 dark:bg-amber-950/30'
-        : 'border-slate-200 bg-slate-50/80 dark:border-slate-700 dark:bg-slate-900/50'
+    alert.severity === "critical"
+      ? "border-red-200 bg-red-50/80 dark:border-red-900/50 dark:bg-red-950/40"
+      : alert.severity === "warning"
+        ? "border-amber-200 bg-amber-50/80 dark:border-amber-900/40 dark:bg-amber-950/30"
+        : "border-slate-200 bg-slate-50/80 dark:border-slate-700 dark:bg-slate-900/50";
   return (
     <li
       className={`rounded-xl border px-4 py-3 ${sev}`}
@@ -139,41 +144,41 @@ function AlertRow({ alert }: { alert: MonitoringAlert }) {
         </span>
       </div>
     </li>
-  )
+  );
 }
 
 export function MonitoringPage() {
-  const rows = useClientMetrics()
-  const red = useMemo(() => redSummary(rows, WINDOW_MS), [rows])
-  const routes = useMemo(() => aggregateRoutes(rows, WINDOW_MS), [rows])
+  const rows = useClientMetrics();
+  const red = useMemo(() => redSummary(rows, WINDOW_MS), [rows]);
+  const routes = useMemo(() => aggregateRoutes(rows, WINDOW_MS), [rows]);
 
   const [{ infra, cpuSpark }, setInfraAndSpark] = useState(() => ({
     infra: initialInfrastructure(),
     cpuSpark: [] as number[],
-  }))
-  const tickRef = useRef(0)
+  }));
+  const tickRef = useRef(0);
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      tickRef.current += 1
+      tickRef.current += 1;
       setInfraAndSpark((prev) => {
-        const nextInfra = tickInfrastructure(prev.infra, tickRef.current)
+        const nextInfra = tickInfrastructure(prev.infra, tickRef.current);
         return {
           infra: nextInfra,
           cpuSpark: [...prev.cpuSpark, nextInfra.cpuPercent].slice(-24),
-        }
-      })
-    }, 2000)
-    return () => window.clearInterval(id)
-  }, [])
+        };
+      });
+    }, 2000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const clientErrors = useMemo(
     () =>
       rows
         .filter(
           (r) =>
-            r.status === 'network' ||
-            (typeof r.status === 'number' && r.status >= 400),
+            r.status === "network" ||
+            (typeof r.status === "number" && r.status >= 400),
         )
         .slice(-20)
         .map((r) => ({
@@ -181,17 +186,17 @@ export function MonitoringPage() {
           message: `${r.method} ${r.path} → ${String(r.status)} (${r.durationMs.toFixed(0)} ms)`,
         })),
     [rows],
-  )
+  );
 
-  const logs = useMemo(() => buildDemoLogs(clientErrors), [clientErrors])
+  const logs = useMemo(() => buildDemoLogs(clientErrors), [clientErrors]);
   const alerts = useMemo(
     () => deriveAlerts(infra, red.errorRate),
     [infra, red.errorRate],
-  )
+  );
 
   const onClear = useCallback(() => {
-    clearClientTelemetry()
-  }, [])
+    clearClientTelemetry();
+  }, []);
 
   return (
     <AppShell>
@@ -206,14 +211,14 @@ export function MonitoringPage() {
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
               Application health (demo baseline), API performance from this
-              browser session, and suggested production tooling. Connect{' '}
+              browser session, and suggested production tooling. Connect{" "}
               <strong className="font-medium text-slate-800 dark:text-slate-200">
                 Prometheus
-              </strong>{' '}
-              scrape targets and{' '}
+              </strong>{" "}
+              scrape targets and{" "}
               <strong className="font-medium text-slate-800 dark:text-slate-200">
                 Grafana
-              </strong>{' '}
+              </strong>{" "}
               dashboards to replace synthetic baselines.
             </p>
           </div>
@@ -238,10 +243,10 @@ export function MonitoringPage() {
           </h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Simulated process and dependency signals (CPU, memory, heap, DB
-            latency). In production, expose these via{' '}
+            latency). In production, expose these via{" "}
             <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
               /metrics
-            </code>{' '}
+            </code>{" "}
             for Prometheus.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -283,11 +288,11 @@ export function MonitoringPage() {
             />
             <MetricCard
               label="API mode"
-              value={isApiMode() ? 'On' : 'Off'}
+              value={isApiMode() ? "On" : "Off"}
               subtitle={
                 isApiMode()
-                  ? 'Client telemetry records API calls'
-                  : 'Tasks use local storage only'
+                  ? "Client telemetry records API calls"
+                  : "Tasks use local storage only"
               }
             />
           </div>
@@ -304,15 +309,15 @@ export function MonitoringPage() {
             <strong className="font-medium text-slate-800 dark:text-slate-200">
               Rate
             </strong>
-            ,{' '}
+            ,{" "}
             <strong className="font-medium text-slate-800 dark:text-slate-200">
               Errors
             </strong>
-            ,{' '}
+            ,{" "}
             <strong className="font-medium text-slate-800 dark:text-slate-200">
               Duration
-            </strong>{' '}
-            for requests made by this app in the last five minutes (via{' '}
+            </strong>{" "}
+            for requests made by this app in the last five minutes (via{" "}
             <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
               apiRequestJson
             </code>
@@ -435,11 +440,11 @@ export function MonitoringPage() {
             Error logging
           </h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            Recent client-side failures from this session (plus demo log
-            lines). Ship structured JSON logs to{' '}
+            Recent client-side failures from this session (plus demo log lines).
+            Ship structured JSON logs to{" "}
             <strong className="font-medium text-slate-800 dark:text-slate-200">
               Loki
-            </strong>{' '}
+            </strong>{" "}
             or your cloud log platform and correlate with trace IDs.
           </p>
           <ul className="mt-4 space-y-2">
@@ -450,14 +455,14 @@ export function MonitoringPage() {
               >
                 <span className="text-xs text-slate-500 dark:text-slate-500">
                   {new Date(log.at).toLocaleTimeString()}
-                </span>{' '}
+                </span>{" "}
                 <span
                   className={
-                    log.severity === 'error'
-                      ? 'font-medium text-red-600 dark:text-red-400'
-                      : log.severity === 'warn'
-                        ? 'font-medium text-amber-700 dark:text-amber-400'
-                        : 'text-slate-700 dark:text-slate-300'
+                    log.severity === "error"
+                      ? "font-medium text-red-600 dark:text-red-400"
+                      : log.severity === "warn"
+                        ? "font-medium text-amber-700 dark:text-amber-400"
+                        : "text-slate-700 dark:text-slate-300"
                   }
                 >
                   [{log.source}] {log.message}
@@ -476,10 +481,10 @@ export function MonitoringPage() {
           </h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Example alert rules: SLO burn rate, saturation, and error spikes.
-            Route through{' '}
+            Route through{" "}
             <strong className="font-medium text-slate-800 dark:text-slate-200">
               Alertmanager
-            </strong>{' '}
+            </strong>{" "}
             or Grafana Alerting to PagerDuty, Slack, or email.
           </p>
           <ul className="mt-4 space-y-3">
@@ -526,7 +531,7 @@ export function MonitoringPage() {
         </section>
       </div>
     </AppShell>
-  )
+  );
 }
 
 function MetricCard({
@@ -535,10 +540,10 @@ function MetricCard({
   subtitle,
   sparkline,
 }: {
-  label: string
-  value: string
-  subtitle: string
-  sparkline?: ReactNode
+  label: string;
+  value: string;
+  subtitle: string;
+  sparkline?: ReactNode;
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -557,5 +562,5 @@ function MetricCard({
         {sparkline}
       </div>
     </div>
-  )
+  );
 }

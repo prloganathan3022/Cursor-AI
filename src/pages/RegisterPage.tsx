@@ -1,44 +1,44 @@
-import { type FormEvent, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
-import { AppShell } from '../components/AppShell'
-import { useAuth } from '../context/AuthContext'
-import { validateRegister, type RegisterFieldErrors } from '../lib/validation'
+import { type FormEvent, useState } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { AppShell } from "../components/AppShell";
+import { useAuth } from "../context/AuthContext";
+import { validateRegister, type RegisterFieldErrors } from "../lib/validation";
 
 export function RegisterPage() {
-  const { isAuthenticated, register } = useAuth()
+  const { isAuthenticated, register } = useAuth();
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [errors, setErrors] = useState<RegisterFieldErrors>({})
-  const [formError, setFormError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<RegisterFieldErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/dashboard" replace />;
   }
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setFormError(null)
+    e.preventDefault();
+    setFormError(null);
     const nextErrors = validateRegister({
       name,
       email,
       password,
       confirmPassword,
-    })
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
+    });
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
-    setSubmitting(true)
+    setSubmitting(true);
     const result = await register({
       name: name.trim(),
       email: email.trim(),
       password,
-    })
-    setSubmitting(false)
-    if (!result.ok) setFormError(result.message)
+    });
+    setSubmitting(false);
+    if (!result.ok) setFormError(result.message);
   }
 
   return (
@@ -85,7 +85,7 @@ export function RegisterPage() {
               onChange={(e) => setName(e.target.value)}
               className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-violet-400 dark:focus:ring-violet-400/20"
               aria-invalid={!!errors.name}
-              aria-describedby={errors.name ? 'register-name-error' : undefined}
+              aria-describedby={errors.name ? "register-name-error" : undefined}
             />
             {errors.name && (
               <p
@@ -116,7 +116,7 @@ export function RegisterPage() {
               className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-violet-400 dark:focus:ring-violet-400/20"
               aria-invalid={!!errors.email}
               aria-describedby={
-                errors.email ? 'register-email-error' : undefined
+                errors.email ? "register-email-error" : undefined
               }
             />
             {errors.email && (
@@ -148,7 +148,7 @@ export function RegisterPage() {
               className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-violet-400 dark:focus:ring-violet-400/20"
               aria-invalid={!!errors.password}
               aria-describedby={
-                errors.password ? 'register-password-error' : undefined
+                errors.password ? "register-password-error" : undefined
               }
             />
             {errors.password && (
@@ -180,7 +180,7 @@ export function RegisterPage() {
               className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm transition focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-violet-400 dark:focus:ring-violet-400/20"
               aria-invalid={!!errors.confirmPassword}
               aria-describedby={
-                errors.confirmPassword ? 'register-confirm-error' : undefined
+                errors.confirmPassword ? "register-confirm-error" : undefined
               }
             />
             {errors.confirmPassword && (
@@ -200,11 +200,11 @@ export function RegisterPage() {
             disabled={submitting}
             className="flex w-full justify-center rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:hover:bg-violet-400"
           >
-            {submitting ? 'Creating account…' : 'Create account'}
+            {submitting ? "Creating account…" : "Create account"}
           </button>
 
           <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link
               to="/login"
               data-testid="link-login"
@@ -216,5 +216,5 @@ export function RegisterPage() {
         </form>
       </div>
     </AppShell>
-  )
+  );
 }

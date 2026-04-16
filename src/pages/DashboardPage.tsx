@@ -1,171 +1,171 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import {
   createTaskApi,
   deleteTaskApi,
   fetchTasksApi,
   updateTaskApi,
-} from '../api/tasksApi'
-import { AppShell } from '../components/AppShell'
-import { isApiMode } from '../config/api'
-import { useAuth } from '../context/AuthContext'
-import { ApiError } from '../lib/http'
-import { addTask, deleteTask, listTasks, updateTask } from '../lib/taskStorage'
-import type { Task } from '../types'
+} from "../api/tasksApi";
+import { AppShell } from "../components/AppShell";
+import { isApiMode } from "../config/api";
+import { useAuth } from "../context/AuthContext";
+import { ApiError } from "../lib/http";
+import { addTask, deleteTask, listTasks, updateTask } from "../lib/taskStorage";
+import type { Task } from "../types";
 
-type Filter = 'all' | 'active' | 'completed'
+type Filter = "all" | "active" | "completed";
 
 export function DashboardPage() {
-  const { user } = useAuth()
-  const userId = user?.id ?? ''
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
 
-  const [reloadKey, setReloadKey] = useState(0)
-  const [filter, setFilter] = useState<Filter>('all')
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [formError, setFormError] = useState<string | null>(null)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editTitle, setEditTitle] = useState('')
-  const [editDescription, setEditDescription] = useState('')
-  const [apiTasks, setApiTasks] = useState<Task[] | null>(null)
+  const [reloadKey, setReloadKey] = useState(0);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [apiTasks, setApiTasks] = useState<Task[] | null>(null);
 
   useEffect(() => {
     if (!isApiMode() || !userId) {
       // Reset server-backed list when leaving API mode or logging out (sync with route/user).
       // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional state reset tied to user/mode
-      setApiTasks(null)
-      return
+      setApiTasks(null);
+      return;
     }
-    let cancelled = false
-    ;(async () => {
+    let cancelled = false;
+    (async () => {
       try {
-        const list = await fetchTasksApi()
-        if (!cancelled) setApiTasks(list)
+        const list = await fetchTasksApi();
+        if (!cancelled) setApiTasks(list);
       } catch {
-        if (!cancelled) setApiTasks([])
+        if (!cancelled) setApiTasks([]);
       }
-    })()
+    })();
     return () => {
-      cancelled = true
-    }
-  }, [userId, reloadKey])
+      cancelled = true;
+    };
+  }, [userId, reloadKey]);
 
   const localTasks = useMemo(() => {
-    if (!userId || isApiMode()) return []
-    void reloadKey
-    return listTasks(userId)
-  }, [userId, reloadKey])
+    if (!userId || isApiMode()) return [];
+    void reloadKey;
+    return listTasks(userId);
+  }, [userId, reloadKey]);
 
   const tasks = useMemo(
     () => (isApiMode() ? (apiTasks ?? []) : localTasks),
     [apiTasks, localTasks],
-  )
+  );
 
-  const bump = () => setReloadKey((k) => k + 1)
+  const bump = () => setReloadKey((k) => k + 1);
 
   const filtered = useMemo(() => {
-    if (filter === 'active') return tasks.filter((t) => !t.completed)
-    if (filter === 'completed') return tasks.filter((t) => t.completed)
-    return tasks
-  }, [tasks, filter])
+    if (filter === "active") return tasks.filter((t) => !t.completed);
+    if (filter === "completed") return tasks.filter((t) => t.completed);
+    return tasks;
+  }, [tasks, filter]);
 
   async function handleAdd(e: FormEvent) {
-    e.preventDefault()
-    setFormError(null)
-    const t = title.trim()
+    e.preventDefault();
+    setFormError(null);
+    const t = title.trim();
     if (!t) {
-      setFormError('Title is required')
-      return
+      setFormError("Title is required");
+      return;
     }
-    if (!userId) return
+    if (!userId) return;
     if (isApiMode()) {
       try {
-        await createTaskApi({ title: t, description })
-        setTitle('')
-        setDescription('')
-        bump()
+        await createTaskApi({ title: t, description });
+        setTitle("");
+        setDescription("");
+        bump();
       } catch (err) {
         setFormError(
-          err instanceof ApiError ? err.message : 'Could not create task.',
-        )
+          err instanceof ApiError ? err.message : "Could not create task.",
+        );
       }
-      return
+      return;
     }
-    addTask(userId, { title: t, description })
-    setTitle('')
-    setDescription('')
-    bump()
+    addTask(userId, { title: t, description });
+    setTitle("");
+    setDescription("");
+    bump();
   }
 
   async function toggleComplete(task: Task) {
-    if (!userId) return
+    if (!userId) return;
     if (isApiMode()) {
       try {
-        await updateTaskApi(task.id, { completed: !task.completed })
-        bump()
+        await updateTaskApi(task.id, { completed: !task.completed });
+        bump();
       } catch {
         /* silent — could add toast */
       }
-      return
+      return;
     }
-    updateTask(userId, task.id, { completed: !task.completed })
-    bump()
+    updateTask(userId, task.id, { completed: !task.completed });
+    bump();
   }
 
   function startEdit(task: Task) {
-    setEditingId(task.id)
-    setEditTitle(task.title)
-    setEditDescription(task.description)
+    setEditingId(task.id);
+    setEditTitle(task.title);
+    setEditDescription(task.description);
   }
 
   async function saveEdit() {
-    if (!userId || !editingId) return
-    const t = editTitle.trim()
-    if (!t) return
+    if (!userId || !editingId) return;
+    const t = editTitle.trim();
+    if (!t) return;
     if (isApiMode()) {
       try {
         await updateTaskApi(editingId, {
           title: t,
           description: editDescription.trim(),
-        })
-        setEditingId(null)
-        bump()
+        });
+        setEditingId(null);
+        bump();
       } catch {
         /* */
       }
-      return
+      return;
     }
     updateTask(userId, editingId, {
       title: t,
       description: editDescription.trim(),
-    })
-    setEditingId(null)
-    bump()
+    });
+    setEditingId(null);
+    bump();
   }
 
   function cancelEdit() {
-    setEditingId(null)
+    setEditingId(null);
   }
 
   async function remove(taskId: string) {
-    if (!userId) return
+    if (!userId) return;
     if (isApiMode()) {
       try {
-        await deleteTaskApi(taskId)
-        bump()
+        await deleteTaskApi(taskId);
+        bump();
       } catch {
         /* */
       }
-      return
+      return;
     }
-    deleteTask(userId, taskId)
-    bump()
+    deleteTask(userId, taskId);
+    bump();
   }
 
   const stats = useMemo(() => {
-    const total = tasks.length
-    const completed = tasks.filter((t) => t.completed).length
-    return { total, completed, active: total - completed }
-  }, [tasks])
+    const total = tasks.length;
+    const completed = tasks.filter((t) => t.completed).length;
+    return { total, completed, active: total - completed };
+  }, [tasks]);
 
   return (
     <AppShell>
@@ -179,8 +179,8 @@ export function DashboardPage() {
           </h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             {isApiMode()
-              ? 'Tasks are loaded from the API. Check the Flask terminal for request logs.'
-              : 'Add tasks, mark them done, and filter by status. Data is stored in your browser for this demo.'}
+              ? "Tasks are loaded from the API. Check the Flask terminal for request logs."
+              : "Add tasks, mark them done, and filter by status. Data is stored in your browser for this demo."}
           </p>
         </div>
 
@@ -275,9 +275,9 @@ export function DashboardPage() {
             >
               {(
                 [
-                  ['all', 'All'],
-                  ['active', 'Active'],
-                  ['completed', 'Done'],
+                  ["all", "All"],
+                  ["active", "Active"],
+                  ["completed", "Done"],
                 ] as const
               ).map(([key, label]) => (
                 <button
@@ -287,8 +287,8 @@ export function DashboardPage() {
                   onClick={() => setFilter(key)}
                   className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
                     filter === key
-                      ? 'bg-violet-600 text-white dark:bg-violet-500'
-                      : 'bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700'
+                      ? "bg-violet-600 text-white dark:bg-violet-500"
+                      : "bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
                   {label}
@@ -303,8 +303,8 @@ export function DashboardPage() {
               className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50/80 px-4 py-10 text-center text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400"
             >
               {tasks.length === 0
-                ? 'No tasks yet. Add one above.'
-                : 'No tasks match this filter.'}
+                ? "No tasks yet. Add one above."
+                : "No tasks match this filter."}
             </p>
           ) : (
             <ul data-testid="task-list" className="mt-4 space-y-3">
@@ -367,15 +367,15 @@ export function DashboardPage() {
                             onChange={() => toggleComplete(task)}
                             className="mt-1 h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500 dark:border-slate-600 dark:bg-slate-950"
                             aria-label={
-                              task.completed ? 'Mark as active' : 'Mark as done'
+                              task.completed ? "Mark as active" : "Mark as done"
                             }
                           />
                           <div className="min-w-0">
                             <h3
                               className={`font-medium ${
                                 task.completed
-                                  ? 'text-slate-500 line-through dark:text-slate-500'
-                                  : 'text-slate-900 dark:text-slate-100'
+                                  ? "text-slate-500 line-through dark:text-slate-500"
+                                  : "text-slate-900 dark:text-slate-100"
                               }`}
                             >
                               {task.title}
@@ -386,12 +386,12 @@ export function DashboardPage() {
                               </p>
                             ) : null}
                             <p className="mt-2 text-xs text-slate-400">
-                              Added{' '}
+                              Added{" "}
                               {new Date(task.createdAt).toLocaleString(
                                 undefined,
                                 {
-                                  dateStyle: 'medium',
-                                  timeStyle: 'short',
+                                  dateStyle: "medium",
+                                  timeStyle: "short",
                                 },
                               )}
                             </p>
@@ -425,7 +425,7 @@ export function DashboardPage() {
         </section>
       </div>
     </AppShell>
-  )
+  );
 }
 
 function StatCard({
@@ -433,9 +433,9 @@ function StatCard({
   value,
   testId,
 }: {
-  label: string
-  value: number
-  testId?: string
+  label: string;
+  value: number;
+  testId?: string;
 }) {
   return (
     <div
@@ -449,5 +449,5 @@ function StatCard({
         {value}
       </p>
     </div>
-  )
+  );
 }

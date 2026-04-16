@@ -1,11 +1,11 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { ProtectedRoute } from './components/ProtectedRoute'
-import { AuthProvider } from './context/AuthContext'
-import { ThemeProvider } from './context/ThemeContext'
-import { DashboardPage } from './pages/DashboardPage'
-import { LoginPage } from './pages/LoginPage'
-import { MonitoringPage } from './pages/MonitoringPage'
-import { RegisterPage } from './pages/RegisterPage'
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { DashboardPage } from "./pages/DashboardPage";
+import { LoginPage } from "./pages/LoginPage";
+import { MonitoringPage } from "./pages/MonitoringPage";
+import { RegisterPage } from "./pages/RegisterPage";
 
 export default function App() {
   return (
@@ -37,5 +37,5 @@ export default function App() {
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
-  )
+  );
 }

@@ -1,34 +1,34 @@
-import { render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { AuthProvider } from '../context/AuthContext'
-import { ThemeProvider } from '../context/ThemeContext'
-import { setStoredToken } from '../lib/jwt'
-import { ProtectedRoute } from './ProtectedRoute'
+import { render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "../context/AuthContext";
+import { ThemeProvider } from "../context/ThemeContext";
+import { setStoredToken } from "../lib/jwt";
+import { ProtectedRoute } from "./ProtectedRoute";
 
-vi.mock('../config/api', () => ({
-  API_BASE_URL: 'http://api.test',
+vi.mock("../config/api", () => ({
+  API_BASE_URL: "http://api.test",
   isApiMode: () => true,
-}))
+}));
 
-vi.mock('../lib/serverJwt', () => ({
+vi.mock("../lib/serverJwt", () => ({
   readServerAccessClaims: vi.fn(() => ({
-    sub: '42',
-    email: 'api-user@example.com',
+    sub: "42",
+    email: "api-user@example.com",
     exp: Math.floor(Date.now() / 1000) + 3600,
   })),
-}))
+}));
 
-describe('ProtectedRoute (API mode)', () => {
+describe("ProtectedRoute (API mode)", () => {
   beforeEach(() => {
-    localStorage.clear()
-  })
+    localStorage.clear();
+  });
 
-  it('allows access when stored token has readable server claims', async () => {
-    setStoredToken('header.payload.sig')
+  it("allows access when stored token has readable server claims", async () => {
+    setStoredToken("header.payload.sig");
 
     render(
-      <MemoryRouter initialEntries={['/app']}>
+      <MemoryRouter initialEntries={["/app"]}>
         <ThemeProvider>
           <AuthProvider>
             <Routes>
@@ -45,10 +45,10 @@ describe('ProtectedRoute (API mode)', () => {
           </AuthProvider>
         </ThemeProvider>
       </MemoryRouter>,
-    )
+    );
 
     await waitFor(() => {
-      expect(screen.getByTestId('child')).toHaveTextContent('api-secret')
-    })
-  })
-})
+      expect(screen.getByTestId("child")).toHaveTextContent("api-secret");
+    });
+  });
+});
