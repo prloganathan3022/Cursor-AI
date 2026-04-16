@@ -24,7 +24,7 @@ celery[redis]>=5.4.0,<6
 Flask-Migrate>=4.0.0,<5
 
 # CORS (frontend integration)
-flask-cors>=4.0.0,<6
+flask-cors>=6.0.0,<7
 
 # Abuse protection
 Flask-Limiter[redis]>=3.8.0,<4
