@@ -117,19 +117,16 @@ jobs:
           path: playwright-report
           retention-days: 7
 
-  # Runs only on push to main/master (not on PRs). Set repo variable DISABLE_GH_PAGES=true to skip.
-  # In GitHub: Settings → Pages → Build and deployment → Source: "GitHub Actions".
   deploy-github-pages:
     name: Deploy (GitHub Pages)
     needs: [quality, e2e, security-dependencies]
     if: >
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      vars.DISABLE_GH_PAGES != 'true'
+      vars.ENABLE_GH_PAGES == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: read
       pages: write
       id-token: write
     environment:
